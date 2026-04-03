@@ -15,9 +15,15 @@ export default function ChatInput({ onSubmit, isLoading }: ChatInputProps) {
     const textarea = textareaRef.current;
     if (textarea) {
       textarea.style.height = "auto";
-      textarea.style.height = `${Math.min(textarea.scrollHeight, 120)}px`;
+      textarea.style.height = `${Math.min(textarea.scrollHeight, 200)}px`;
     }
   }, [input]);
+
+  useEffect(() => {
+    if (!isLoading) {
+      textareaRef.current?.focus();
+    }
+  }, [isLoading]);
 
   const handleSubmit = () => {
     const trimmed = input.trim();
@@ -44,7 +50,7 @@ export default function ChatInput({ onSubmit, isLoading }: ChatInputProps) {
           placeholder="Type your message..."
           rows={1}
           disabled={isLoading}
-          className="flex-1 resize-none rounded-xl border border-border bg-surface-alt px-4 py-2.5 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 disabled:opacity-50 placeholder:text-muted transition-all chat-scroll"
+          className="flex-1 resize-none rounded-xl border border-border bg-surface-alt px-4 py-2.5 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 disabled:opacity-50 placeholder:text-muted transition-all overflow-hidden"
         />
         <button
           onClick={handleSubmit}
