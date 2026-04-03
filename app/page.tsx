@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import ChatHistory from "./components/ChatHistory";
 import ChatInput from "./components/ChatInput";
 import ThemeToggle from "./components/ThemeToggle";
@@ -12,26 +12,6 @@ export interface Message {
   timestamp: number;
 }
 
-const STORAGE_KEY = "ai-chat-history";
-
-function loadMessages(): Message[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    return stored ? JSON.parse(stored) : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveMessages(messages: Message[]) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
-  } catch {
-    // localStorage might be full or unavailable
-  }
-}
-
 export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -39,14 +19,21 @@ export default function Home() {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setMessages(loadMessages());
+    fetch("/api/history")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.messages?.length) setMessages(data.messages);
+      })
+      .catch(() => {});
   }, []);
 
-  useEffect(() => {
-    if (messages.length > 0) {
-      saveMessages(messages);
-    }
-  }, [messages]);
+  const saveHistory = useCallback((msgs: Message[]) => {
+    fetch("/api/history", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages: msgs }),
+    }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -62,7 +49,11 @@ export default function Home() {
       timestamp: Date.now(),
     };
 
-    setMessages((prev) => [...prev, userMessage]);
+    setMessages((prev) => {
+      const updated = [...prev, userMessage];
+      saveHistory(updated);
+      return updated;
+    });
     setIsLoading(true);
 
     try {
@@ -86,7 +77,11 @@ export default function Home() {
         timestamp: Date.now(),
       };
 
-      setMessages((prev) => [...prev, aiMessage]);
+      setMessages((prev) => {
+        const updated = [...prev, aiMessage];
+        saveHistory(updated);
+        return updated;
+      });
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Something went wrong";
@@ -99,12 +94,12 @@ export default function Home() {
   const handleClear = () => {
     setMessages([]);
     setError(null);
-    localStorage.removeItem(STORAGE_KEY);
+    fetch("/api/history", { method: "DELETE" }).catch(() => {});
   };
 
   return (
     <div
-      className="flex flex-col w-full max-w-2xl bg-surface rounded-2xl overflow-hidden"
+      className="flex flex-col w-full max-w-3xl bg-surface rounded-2xl overflow-hidden"
       style={{ boxShadow: "var(--shadow-lg)", height: "min(700px, calc(100vh - 3rem))" }}
     >
       {/* Header */}
