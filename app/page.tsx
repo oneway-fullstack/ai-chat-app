@@ -19,25 +19,24 @@ export default function Home() {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetch("/api/history")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.messages?.length) {
-          setMessages(data.messages);
+    try {
+      const stored = localStorage.getItem("chat-history");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length) {
+          setMessages(parsed);
           setTimeout(() => {
             bottomRef.current?.scrollIntoView({ behavior: "instant" });
           }, 0);
         }
-      })
-      .catch(() => {});
+      }
+    } catch {}
   }, []);
 
   const saveHistory = useCallback((msgs: Message[]) => {
-    fetch("/api/history", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages: msgs }),
-    }).catch(() => {});
+    try {
+      localStorage.setItem("chat-history", JSON.stringify(msgs));
+    } catch {}
   }, []);
 
   useEffect(() => {
@@ -99,7 +98,9 @@ export default function Home() {
   const handleClear = () => {
     setMessages([]);
     setError(null);
-    fetch("/api/history", { method: "DELETE" }).catch(() => {});
+    try {
+      localStorage.removeItem("chat-history");
+    } catch {}
   };
 
   return (
