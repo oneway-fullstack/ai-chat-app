@@ -4,6 +4,13 @@ interface ChatMessageProps {
   message: Message;
 }
 
+function formatTime(timestamp: number) {
+  return new Date(timestamp).toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 export default function ChatMessage({ message }: ChatMessageProps) {
   const isUser = message.role === "user";
 
@@ -17,15 +24,20 @@ export default function ChatMessage({ message }: ChatMessageProps) {
           </svg>
         </div>
       )}
-      <div
-        className={`max-w-[75%] px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap ${
-          isUser
-            ? "text-white rounded-2xl rounded-br-sm"
-            : "bg-ai-bubble text-foreground rounded-2xl rounded-bl-sm"
-        }`}
-        style={isUser ? { background: "var(--user-bubble)" } : undefined}
-      >
-        {message.content}
+      <div className={`max-w-[75%] ${isUser ? "items-end" : "items-start"} flex flex-col`}>
+        <div
+          className={`px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap ${
+            isUser
+              ? "text-white rounded-2xl rounded-br-sm"
+              : "bg-ai-bubble text-foreground rounded-2xl rounded-bl-sm"
+          }`}
+          style={isUser ? { background: "var(--user-bubble)" } : undefined}
+        >
+          {message.content}
+        </div>
+        <span className="text-[10px] text-muted mt-1 px-1">
+          {formatTime(message.timestamp)}
+        </span>
       </div>
     </div>
   );

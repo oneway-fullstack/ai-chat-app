@@ -1,3 +1,4 @@
+import type { RefObject } from "react";
 import type { Message } from "../page";
 import ChatMessage from "./ChatMessage";
 import LoadingIndicator from "./LoadingIndicator";
@@ -5,9 +6,10 @@ import LoadingIndicator from "./LoadingIndicator";
 interface ChatHistoryProps {
   messages: Message[];
   isLoading: boolean;
+  bottomRef: RefObject<HTMLDivElement | null>;
 }
 
-export default function ChatHistory({ messages, isLoading }: ChatHistoryProps) {
+export default function ChatHistory({ messages, isLoading, bottomRef }: ChatHistoryProps) {
   if (messages.length === 0 && !isLoading) {
     return (
       <div className="flex-1 flex items-center justify-center text-muted overflow-y-auto px-6">
@@ -30,6 +32,7 @@ export default function ChatHistory({ messages, isLoading }: ChatHistoryProps) {
         <ChatMessage key={msg.id} message={msg} />
       ))}
       {isLoading && <LoadingIndicator />}
+      <div ref={bottomRef} />
     </div>
   );
 }

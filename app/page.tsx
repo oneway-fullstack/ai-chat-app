@@ -22,7 +22,12 @@ export default function Home() {
     fetch("/api/history")
       .then((res) => res.json())
       .then((data) => {
-        if (data.messages?.length) setMessages(data.messages);
+        if (data.messages?.length) {
+          setMessages(data.messages);
+          setTimeout(() => {
+            bottomRef.current?.scrollIntoView({ behavior: "instant" });
+          }, 0);
+        }
       })
       .catch(() => {});
   }, []);
@@ -129,8 +134,7 @@ export default function Home() {
       </header>
 
       {/* Chat Area */}
-      <ChatHistory messages={messages} isLoading={isLoading} />
-      <div ref={bottomRef} />
+      <ChatHistory messages={messages} isLoading={isLoading} bottomRef={bottomRef} />
 
       {/* Error Banner */}
       {error && (
